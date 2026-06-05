@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: asyncflow-db
+    environment:
+      - POSTGRES_DB=asyncflow
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d asyncflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - asyncflow-net
+
+  backend:
+    image: asyncflow-backend
+    container_name: asyncflow-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Database=asyncflow;Username=postgres;Password=postgres
+      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_ENVIRONMENT=Production
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - asyncflow-net
+
+  frontend:
+    image: asyncflow-frontend
+    container_name: asyncflow-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - asyncflow-net
+
+volumes:
+  postgres_data:
+
+networks:
+  asyncflow-net:
+    driver: bridge
