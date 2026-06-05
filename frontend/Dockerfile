@@ -11,8 +11,9 @@ RUN npm install
 # Copy all source files
 COPY . .
 
-# Build frontend with VITE_API_URL set to empty so it uses relative paths
-ENV VITE_API_URL=""
+# Build frontend with VITE_API_URL passed as build argument (for cloud builds) or defaulting to empty
+ARG VITE_API_URL=""
+ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
 # Production Stage
