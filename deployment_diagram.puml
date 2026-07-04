@@ -33,3 +33,31 @@ be_service --> backend : Processa Pedidos HTTP (Porta interna 5000)
 backend --> db_service : 3. Ligações de Dados (Rede Privada Railway / Porta 5432)
 db_service --> postgres : Executa Queries SQL / Migrações
 @enduml
+
+/'
+=================================================================================
+JUSTIFICAÇÃO DA VISTA FÍSICA E ESCOLHA DA INFRAESTRUTURA (RAILWAY)
+=================================================================================
+
+1. Magnitude de Complexidade do Projeto:
+Como a aplicação ASYNCFLOW é um sistema de gestão ágil de magnitude de complexidade 
+e volumetria moderada (composto por um frontend estático, uma API REST e uma base de dados 
+relacional), a adoção de soluções de infraestrutura altamente robustas e complexas 
+(como clusters de Kubernetes, redes virtuais isoladas manualmente em AWS VPC ou máquinas 
+virtuais dedicadas EC2 configuradas de raiz) seria inadequada. Introduziria um esforço de 
+manutenção desnecessário (over-engineering) em comparação com o escopo do projeto.
+
+2. Versatilidade e Agilidade (PaaS):
+A escolha da plataforma PaaS (Platform as a Service) Railway assenta na sua grande versatilidade 
+e automatização de processos. A plataforma fornece deploys automáticos via integração Git-Ops, 
+certificados SSL/HTTPS geridos automaticamente, monitorização simplificada de logs e provisionamento 
+instantâneo da base de dados PostgreSQL. Isto reduz drasticamente o tempo necessário para colocar 
+a aplicação em produção de dias para apenas alguns minutos.
+
+3. Desacoplamento e Segurança de Rede:
+A nível de arquitetura de rede, a separação física dos containers de frontend e backend permite 
+que a comunicação pesada de dados (Backend <-> Base de Dados) seja feita de forma rápida e 100% 
+privada através da rede interna do Railway (resolução DNS interna na porta 5432). O utilizador final 
+acede à SPA React de forma isolada, e o navegador realiza as chamadas de API de forma segura e 
+direta ao backend via HTTPS, reduzindo a latência e o acoplamento da infraestrutura.
+'/
