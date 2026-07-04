@@ -1,0 +1,35 @@
+@startuml ProCode_Physical_Deployment_Railway
+left to right direction
+skinparam packageStyle rectangle
+
+node "Dispositivo do Utilizador" {
+    component [Navegador Web (Web Browser)] as browser
+}
+
+node "Infraestrutura Cloud (Railway Project)" {
+    
+    node "Serviço Frontend (Container Nginx)" as fe_service {
+        component [React SPA (Servidor de Assets)] as frontend
+    }
+
+    node "Serviço Backend (Container .NET 8 API)" as be_service {
+        component [API .NET 8 Core (Runtime C#)] as backend
+    }
+
+    node "Serviço Base de Dados (Container PostgreSQL)" as db_service {
+        database "PostgreSQL Database" as postgres
+    }
+}
+
+' Fluxo de carregamento da aplicação
+browser --> fe_service : 1. Descarrega SPA (HTTPS / Porta 443)
+fe_service --> frontend : Disponibiliza Ficheiros Estáticos (HTML/JS/CSS)
+
+' Chamadas de API diretas pelo cliente via VITE_API_URL
+browser --> be_service : 2. Consome API (HTTPS / Porta 443 via VITE_API_URL)
+be_service --> backend : Processa Pedidos HTTP (Porta interna 5000)
+
+' Conexão interna privada segura de dados no Railway
+backend --> db_service : 3. Ligações de Dados (Rede Privada Railway / Porta 5432)
+db_service --> postgres : Executa Queries SQL / Migrações
+@enduml
